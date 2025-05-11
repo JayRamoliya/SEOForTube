@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,12 +10,29 @@ interface GeneratedContent {
   title: string;
   description: string;
   tags: string[];
+  logoDescription?: string;
 }
 
 const SeoGenerator: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
+
+  // Pass generated content up to parent component
+  useEffect(() => {
+    if (generatedContent) {
+      // Use a custom event to communicate up to parent component
+      const event = new CustomEvent('contentGenerated', { 
+        detail: { 
+          title: generatedContent.title,
+          description: generatedContent.description,
+          tags: generatedContent.tags,
+          logoDescription: generatedContent.logoDescription
+        } 
+      });
+      window.dispatchEvent(event);
+    }
+  }, [generatedContent]);
 
   // For demonstration purposes, we'll use mock data
   const generateSEOContent = async () => {
@@ -31,22 +48,76 @@ const SeoGenerator: React.FC = () => {
       // Mocking a delay to simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Mock response
-      const mockContent = {
-        title: `${keyword.toUpperCase()} in 2025 - Complete Guide (Tips & Tricks)`,
-        description: `Learn everything about ${keyword} with our comprehensive guide for 2025. We cover all the essential tips, tricks, and strategies to help you master ${keyword} and achieve better results. Perfect for beginners and experts alike!`,
-        tags: [
-          keyword.toLowerCase().replace(/\s+/g, ''),
-          `${keyword.toLowerCase().replace(/\s+/g, '')}tutorial`,
-          `${keyword.toLowerCase().replace(/\s+/g, '')}guide`,
+      // Generate 30 tags based on keyword
+      const generateTags = (keyword: string): string[] => {
+        const baseKeyword = keyword.toLowerCase().replace(/\s+/g, '');
+        
+        // Different variations and combinations for tags
+        const variations = [
+          baseKeyword,
+          `${baseKeyword}tutorial`,
+          `${baseKeyword}guide`,
+          `${baseKeyword}tips`,
+          `${baseKeyword}howto`,
+          `learn${baseKeyword}`,
+          `${baseKeyword}for${new Date().getFullYear()}`,
+          `${baseKeyword}basics`,
+          `${baseKeyword}advanced`,
+          `${baseKeyword}masterclass`,
+          `${baseKeyword}explained`,
+          `${baseKeyword}stepbystep`,
+          `best${baseKeyword}`,
+          `${baseKeyword}forbeginners`,
+          `${baseKeyword}tricks`,
+          `${baseKeyword}hacks`,
+          `professional${baseKeyword}`,
+          `${baseKeyword}secrets`,
+          `${baseKeyword}techniques`,
+          `${baseKeyword}strategies`,
+          `${baseKeyword}mastery`,
+          `${baseKeyword}expert`,
+          `${baseKeyword}coaching`,
+          `${baseKeyword}training`,
+          `ultimate${baseKeyword}`,
           'youtube',
-          '2025guide',
+          `${new Date().getFullYear()}guide`,
           'howto',
           'tutorial',
           'tips',
           'tricks',
           'beginner',
-        ]
+          'advanced',
+          'masterclass',
+          'explained'
+        ];
+
+        // Return only unique tags up to 30
+        return [...new Set(variations)].slice(0, 30);
+      };
+      
+      // Generate logo description
+      const generateLogoDescription = (keyword: string): string => {
+        const concepts = [
+          "minimalist", "modern", "geometric", "abstract", "3D", "vintage", 
+          "flat design", "gradient", "illustrated", "dynamic"
+        ];
+        const colors = [
+          "blue and red", "green and gold", "purple and teal", "black and white", 
+          "vibrant multicolor", "earth tones", "pastel", "neon", "monochromatic"
+        ];
+        
+        const randomConcept = concepts[Math.floor(Math.random() * concepts.length)];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        return `A ${randomConcept} logo for "${keyword}" using ${randomColor} colors with a professional and memorable design that reflects the topic's essence.`;
+      };
+      
+      // Mock response
+      const mockContent = {
+        title: `${keyword.toUpperCase()} in ${new Date().getFullYear()} - Complete Guide (Tips & Tricks)`,
+        description: `Learn everything about ${keyword} with our comprehensive guide for ${new Date().getFullYear()}. We cover all the essential tips, tricks, and strategies to help you master ${keyword} and achieve better results. Perfect for beginners and experts alike!`,
+        tags: generateTags(keyword),
+        logoDescription: generateLogoDescription(keyword)
       };
       
       setGeneratedContent(mockContent);
@@ -136,7 +207,26 @@ const SeoGenerator: React.FC = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg">🔖 SEO Tags</h3>
+                <h3 className="font-semibold text-lg">🎨 Logo Description</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(generatedContent.logoDescription || '', 'Logo Description')}
+                  className="text-primary-500 hover:text-primary-600 hover:bg-primary-50"
+                >
+                  Copy
+                </Button>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                <p className="text-gray-700">{generatedContent.logoDescription}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-semibold text-lg">🔖 SEO Tags (30)</h3>
                 <Button
                   variant="ghost"
                   size="sm"
